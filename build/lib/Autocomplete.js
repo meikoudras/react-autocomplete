@@ -86,11 +86,31 @@ var Autocomplete = React.createClass({
   },
 
   handleKeyDown: function handleKeyDown(event) {
+    var _this = this;
+
     if (this.keyDownHandlers[event.key]) this.keyDownHandlers[event.key].call(this, event);else {
-      this.setState({
-        highlightedIndex: null,
-        isOpen: true
-      });
+      var _ret = (function () {
+        var _event$target = event.target;
+        var selectionStart = _event$target.selectionStart;
+        var value = _event$target.value;
+
+        if (value === _this.state.value)
+        // Nothing changed, no need to do anything. This also prevents
+        // our workaround below from nuking user-made selections
+          return {
+            v: undefined
+          };
+        _this.setState({
+          highlightedIndex: null,
+          isOpen: true
+        }, function () {
+          // Restore caret position before autocompletion process
+          // to work around a setSelectionRange bug in IE (#80)
+          _this.refs.input.selectionStart = selectionStart;
+        });
+      })();
+
+      if (typeof _ret === 'object') return _ret.v;
     }
   },
 
